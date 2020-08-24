@@ -2,6 +2,9 @@
 #define SNAKE_H
 
 #include <QMainWindow>
+#include <QState>
+#include <QFinalState>
+#include <QStateMachine>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Snake; }
@@ -17,6 +20,10 @@ public:
 
 private:
     void setStateMachine();
+    void yetToStartSetState(QState* yetToStart);
+    void playingSetState(QState* playing);
+    void interruptSetState(QState* interrupt);
+    void stopSetState(QState* stop);
 
 private:
     Ui::Snake *ui;

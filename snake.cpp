@@ -1,7 +1,3 @@
-#include <QStateMachine>
-#include <QState>
-#include <QFinalState>
-
 #include "snake.h"
 #include "ui_snake.h"
 
@@ -31,10 +27,10 @@ void Snake::setStateMachine(){
     stateMachine->addState(finish);
     stateMachine->setInitialState(game);
 
-    yetToStart->assignProperty(ui->label, "text", "In state yetToStart");
-    playing->assignProperty(ui->label, "text", "In state playing");
-    stop->assignProperty(ui->label, "text", "In state stop");
-    interrupt->assignProperty(ui->label, "text", "In state interrupt");
+    yetToStartSetState(yetToStart);
+    playingSetState(playing);
+    interruptSetState(interrupt);
+    stopSetState(stop);
 
     yetToStart->addTransition(ui->actionStart, &QAction::triggered, playing);
     yetToStart->addTransition(ui->actionLoad, &QAction::triggered, interrupt);
@@ -55,4 +51,48 @@ void Snake::setStateMachine(){
     connect(stateMachine, &QStateMachine::finished, QCoreApplication::instance(), &QCoreApplication::quit);
 
     stateMachine->start();
+}
+
+void Snake::yetToStartSetState(QState *yetToStart){
+    yetToStart->assignProperty(ui->label, "text", "In state yetToStart");
+    yetToStart->assignProperty(ui->actionPause, "enabled", false);
+    yetToStart->assignProperty(ui->actionContinue, "enabled", false);
+    yetToStart->assignProperty(ui->actionSave, "enabled", false);
+    yetToStart->assignProperty(ui->actionRestart, "enabled", false);
+    yetToStart->assignProperty(ui->actionStart, "enabled", true);
+    yetToStart->assignProperty(ui->actionQuit, "enabled", true);
+    yetToStart->assignProperty(ui->actionLoad, "enabled", true);
+}
+
+void Snake::playingSetState(QState *playing){
+    playing->assignProperty(ui->label, "text", "In state playing");
+    playing->assignProperty(ui->actionStart, "enabled", false);
+    playing->assignProperty(ui->actionLoad, "enabled", false);
+    playing->assignProperty(ui->actionContinue, "enabled", false);
+    playing->assignProperty(ui->actionRestart, "enabled", false);
+    playing->assignProperty(ui->actionSave, "enabled", false);
+    playing->assignProperty(ui->actionQuit, "enabled", true);
+    playing->assignProperty(ui->actionPause, "enabled", true);
+}
+
+void Snake::interruptSetState(QState *interrupt){
+    interrupt->assignProperty(ui->label, "text", "In state interrupt");
+    interrupt->assignProperty(ui->actionStart, "enabled", false);
+    interrupt->assignProperty(ui->actionPause, "enabled", false);
+    interrupt->assignProperty(ui->actionLoad, "enabled", false);
+    interrupt->assignProperty(ui->actionQuit, "enabled", true);
+    interrupt->assignProperty(ui->actionContinue, "enabled", true);
+    interrupt->assignProperty(ui->actionRestart, "enabled", true);
+    interrupt->assignProperty(ui->actionSave, "enabled", true);
+}
+
+void Snake::stopSetState(QState *stop){
+    stop->assignProperty(ui->label, "text", "In state stop");
+    stop->assignProperty(ui->actionStart, "enabled", false);
+    stop->assignProperty(ui->actionPause, "enabled", false);
+    stop->assignProperty(ui->actionContinue, "enabled", false);
+    stop->assignProperty(ui->actionLoad, "enabled", false);
+    stop->assignProperty(ui->actionSave, "enabled", false);
+    stop->assignProperty(ui->actionQuit, "enabled", true);
+    stop->assignProperty(ui->actionRestart, "enabled", true);
 }
