@@ -3,9 +3,15 @@
 
 Snake::Snake(QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::Snake)
+    , ui(new Ui::Snake), playground(42, QVector<bool>(42, false))
 {
     ui->setupUi(this);
+    QTimer * timer = new QTimer(this);
+    connect(timer, &QTimer::timeout, [=](){ time++; ui->timeLCDNumber->display(time);});
+    connect(ui->pauseTimeButton, &QPushButton::clicked, timer, &QTimer::stop);
+    connect(ui->continueTimeButton, SIGNAL(clicked()), timer, SLOT(start()));
+    timer->setInterval(1000);
+    timer->start();
     setStateMachine();
 }
 
@@ -50,6 +56,12 @@ void Snake::setStateMachine(){
     connect(ui->quitButton, &QPushButton::clicked, ui->actionQuit, &QAction::triggered);
     connect(stateMachine, &QStateMachine::finished, QCoreApplication::instance(), &QCoreApplication::quit);
 
+    connect(yetToStart, &QState::entered, this, &Snake::yetToStartInit);
+    connect(playing, &QState::entered, this, &Snake::playingInit);
+    connect(interrupt, &QState::entered, this, &Snake::interruptInit);
+    connect(stop, &QState::entered, this, &Snake::stopInit);
+    connect(yetToStart, &QState::exited, this, &Snake::yetToStartLeave);
+
     stateMachine->start();
 }
 
@@ -73,6 +85,38 @@ void Snake::yetToStartSetState(QState *yetToStart){
     yetToStart->assignProperty(ui->loadButton, "enabled", true);
 }
 
+void Snake::yetToStartInit(){
+    for(int i = 0; i < 42; i ++){
+        for(int j = 0; j < 42; j ++){
+            if(i == 0 || i == 41 || j == 0 || j == 41){
+                playground[i][j] = true;
+            } else {
+                playground[i][j] = false;
+            }
+        }
+    }
+
+    body.clear();
+    body.push_back(QPoint(20, 21));
+    body.push_back(QPoint(20, 20));
+
+    target = QPoint(-1, -1);
+    hover = QPoint(-1, -1);
+
+    stateIdx = 1;
+
+    setMouseTracking(true);
+    ui->centralwidget->setMouseTracking(true);
+
+    update();
+}
+
+void Snake::yetToStartLeave(){
+    setMouseTracking(false);
+    ui->centralwidget->setMouseTracking(false);
+    hover = QPoint(-1, -1);
+}
+
 void Snake::playingSetState(QState *playing){
     playing->assignProperty(ui->label, "text", "In state playing");
 
@@ -91,6 +135,10 @@ void Snake::playingSetState(QState *playing){
     playing->assignProperty(ui->saveButton, "enabled", false);
     playing->assignProperty(ui->quitButton, "enabled", true);
     playing->assignProperty(ui->pauseButton, "enabled", true);
+}
+
+void Snake::playingInit(){
+    stateIdx = 2;
 }
 
 void Snake::interruptSetState(QState *interrupt){
@@ -113,6 +161,10 @@ void Snake::interruptSetState(QState *interrupt){
     interrupt->assignProperty(ui->saveButton, "enabled", true);
 }
 
+void Snake::interruptInit(){
+    stateIdx = 3;
+}
+
 void Snake::stopSetState(QState *stop){
     stop->assignProperty(ui->label, "text", "In state stop");
 
@@ -131,4 +183,91 @@ void Snake::stopSetState(QState *stop){
     stop->assignProperty(ui->saveButton, "enabled", false);
     stop->assignProperty(ui->quitButton, "enabled", true);
     stop->assignProperty(ui->restartButton, "enabled", true);
+}
+
+void Snake::stopInit(){
+    stateIdx = 4;
+}
+
+void Snake::paintEvent(QPaintEvent *){
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+    QVector<QVector<int>> plate(42, QVector<int>(42, 0));
+    for(int i = 0; i < 42; i ++){
+        for(int j = 0; j < 42; j ++){
+            plate[i][j] = playground[i][j];
+        }
+    }
+    if(target.x() >= 1 && target.x() <= 40 && target.y() >= 1 && target.y() <= 40){
+        plate[target.x()][target.y()] = 2;
+    }
+    for(auto point: body){
+        plate[point.x()][point.y()] = 3;
+    }
+    if(hover.x() >= 1 && hover.x() <= 40 && hover.y() >= 1 && hover.y() <= 40){
+        plate[hover.x()][hover.y()] = 4;
+    }
+
+    for(int i = 0; i < 42; i ++){
+        for(int j = 0; j < 42; j++){
+            switch (plate[i][j]) {
+            case 0:
+                painter.setBrush(QColor("white"));
+                painter.setPen(QColor("green"));
+                break;
+            case 1:
+                painter.setBrush(QColor("black"));
+                painter.setPen(QColor("green"));
+                break;
+            case 2:
+                painter.setBrush(QColor("red"));
+                painter.setPen(QColor("green"));
+                break;
+            case 3:
+                painter.setBrush(QColor("blue"));
+                painter.setPen(QColor("green"));
+                break;
+            case 4:
+                painter.setBrush(QColor("purple"));
+                painter.setPen(QColor("green"));
+                break;
+            default:
+                assert(0 && plate[i][j]);
+            }
+            QPoint xy = rc2xy(QPoint(i, j));
+            painter.drawRect(xy.x(), xy.y(), 10, 10);
+        }
+    }
+    painter.end();
+}
+
+void Snake::mouseMoveEvent(QMouseEvent *event){
+    if(stateIdx != 1){
+        return;
+    }
+    int x = event->x(), y = event->y();
+    hover = xy2rc(QPoint(x, y));
+    update();
+}
+
+void Snake::mouseReleaseEvent(QMouseEvent *){
+    if(stateIdx != 1){
+        return;
+    }
+    if(hover.x() >= 1 && hover.x() <= 40 && hover.y() >= 1 && hover.y() <= 40){
+        playground[hover.x()][hover.y()] = !playground[hover.x()][hover.y()];
+    }
+    update();
+}
+
+QPoint Snake::rc2xy(QPoint rc){
+    int y = 50 + rc.x() * 10;
+    int x = 50 + rc.y() * 10;
+    return QPoint(x, y);
+}
+
+QPoint Snake::xy2rc(QPoint xy){
+    int row = (xy.y() - 50) / 10;
+    int col = (xy.x() - 50) / 10;
+    return QPoint(row, col);
 }
