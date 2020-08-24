@@ -55,6 +55,7 @@ void Snake::setStateMachine(){
 
 void Snake::yetToStartSetState(QState *yetToStart){
     yetToStart->assignProperty(ui->label, "text", "In state yetToStart");
+
     yetToStart->assignProperty(ui->actionPause, "enabled", false);
     yetToStart->assignProperty(ui->actionContinue, "enabled", false);
     yetToStart->assignProperty(ui->actionSave, "enabled", false);
@@ -62,10 +63,19 @@ void Snake::yetToStartSetState(QState *yetToStart){
     yetToStart->assignProperty(ui->actionStart, "enabled", true);
     yetToStart->assignProperty(ui->actionQuit, "enabled", true);
     yetToStart->assignProperty(ui->actionLoad, "enabled", true);
+
+    yetToStart->assignProperty(ui->pauseButton, "enabled", false);
+    yetToStart->assignProperty(ui->continueButton, "enabled", false);
+    yetToStart->assignProperty(ui->saveButton, "enabled", false);
+    yetToStart->assignProperty(ui->restartButton, "enabled", false);
+    yetToStart->assignProperty(ui->startButton, "enabled", true);
+    yetToStart->assignProperty(ui->quitButton, "enabled", true);
+    yetToStart->assignProperty(ui->loadButton, "enabled", true);
 }
 
 void Snake::playingSetState(QState *playing){
     playing->assignProperty(ui->label, "text", "In state playing");
+
     playing->assignProperty(ui->actionStart, "enabled", false);
     playing->assignProperty(ui->actionLoad, "enabled", false);
     playing->assignProperty(ui->actionContinue, "enabled", false);
@@ -73,10 +83,19 @@ void Snake::playingSetState(QState *playing){
     playing->assignProperty(ui->actionSave, "enabled", false);
     playing->assignProperty(ui->actionQuit, "enabled", true);
     playing->assignProperty(ui->actionPause, "enabled", true);
+
+    playing->assignProperty(ui->startButton, "enabled", false);
+    playing->assignProperty(ui->loadButton, "enabled", false);
+    playing->assignProperty(ui->continueButton, "enabled", false);
+    playing->assignProperty(ui->restartButton, "enabled", false);
+    playing->assignProperty(ui->saveButton, "enabled", false);
+    playing->assignProperty(ui->quitButton, "enabled", true);
+    playing->assignProperty(ui->pauseButton, "enabled", true);
 }
 
 void Snake::interruptSetState(QState *interrupt){
     interrupt->assignProperty(ui->label, "text", "In state interrupt");
+
     interrupt->assignProperty(ui->actionStart, "enabled", false);
     interrupt->assignProperty(ui->actionPause, "enabled", false);
     interrupt->assignProperty(ui->actionLoad, "enabled", false);
@@ -84,10 +103,19 @@ void Snake::interruptSetState(QState *interrupt){
     interrupt->assignProperty(ui->actionContinue, "enabled", true);
     interrupt->assignProperty(ui->actionRestart, "enabled", true);
     interrupt->assignProperty(ui->actionSave, "enabled", true);
+
+    interrupt->assignProperty(ui->startButton, "enabled", false);
+    interrupt->assignProperty(ui->pauseButton, "enabled", false);
+    interrupt->assignProperty(ui->loadButton, "enabled", false);
+    interrupt->assignProperty(ui->quitButton, "enabled", true);
+    interrupt->assignProperty(ui->continueButton, "enabled", true);
+    interrupt->assignProperty(ui->restartButton, "enabled", true);
+    interrupt->assignProperty(ui->saveButton, "enabled", true);
 }
 
 void Snake::stopSetState(QState *stop){
     stop->assignProperty(ui->label, "text", "In state stop");
+
     stop->assignProperty(ui->actionStart, "enabled", false);
     stop->assignProperty(ui->actionPause, "enabled", false);
     stop->assignProperty(ui->actionContinue, "enabled", false);
@@ -95,4 +123,12 @@ void Snake::stopSetState(QState *stop){
     stop->assignProperty(ui->actionSave, "enabled", false);
     stop->assignProperty(ui->actionQuit, "enabled", true);
     stop->assignProperty(ui->actionRestart, "enabled", true);
+
+    stop->assignProperty(ui->startButton, "enabled", false);
+    stop->assignProperty(ui->pauseButton, "enabled", false);
+    stop->assignProperty(ui->continueButton, "enabled", false);
+    stop->assignProperty(ui->loadButton, "enabled", false);
+    stop->assignProperty(ui->saveButton, "enabled", false);
+    stop->assignProperty(ui->quitButton, "enabled", true);
+    stop->assignProperty(ui->restartButton, "enabled", true);
 }
