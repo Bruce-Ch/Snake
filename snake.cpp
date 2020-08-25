@@ -266,6 +266,10 @@ QVector<QVector<int>> Snake::getPlate(){
 void Snake::paintEvent(QPaintEvent *){
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
+    int left, top, right, bottom;
+    ui->centralwidget->getContentsMargins(&left, &top, &right, &bottom);
+    double side = qMin<double>((ui->centralwidget->width() - left - right) * 0.75, ui->centralwidget->height() - top - bottom);
+    painter.scale(side / 600, side / 600);
     QVector<QVector<int>> plate = getPlate();
 
     for(int i = 0; i < 42; i ++){
@@ -295,7 +299,7 @@ void Snake::paintEvent(QPaintEvent *){
                 assert(0 && plate[i][j]);
             }
             QPoint xy = rc2xy(QPoint(i, j));
-            painter.drawRect(xy.x(), xy.y(), 10, 10);
+            painter.drawRect(xy.x(), xy.y(), 13, 13);
         }
     }
     painter.end();
@@ -307,7 +311,7 @@ void Snake::mouseMoveEvent(QMouseEvent *event){
         return;
     }
     int x = event->x(), y = event->y();
-    hover = xy2rc(QPoint(x, y));
+    hover = xy2rc(xy2rxry(QPoint(x, y)));
     update();
 }
 
@@ -345,15 +349,24 @@ void Snake::keyPressEvent(QKeyEvent *event){
 }
 
 QPoint Snake::rc2xy(QPoint rc){
-    int y = 50 + rc.x() * 10;
-    int x = 50 + rc.y() * 10;
+    int y = 50 + rc.x() * 13;
+    int x = 50 + rc.y() * 13;
     return QPoint(x, y);
 }
 
 QPoint Snake::xy2rc(QPoint xy){
-    int row = (xy.y() - 50) / 10;
-    int col = (xy.x() - 50) / 10;
+    int row = (xy.y() - 50) / 13;
+    int col = (xy.x() - 50) / 13;
     return QPoint(row, col);
+}
+
+QPoint Snake::xy2rxry(QPoint xy){
+    int left, top, right, bottom;
+    ui->centralwidget->getContentsMargins(&left, &top, &right, &bottom);
+    double side = qMin<double>((ui->centralwidget->width() - left - right) * 0.75, ui->centralwidget->height() - top - bottom);
+    int rx = xy.x() / side * 600;
+    int ry = xy.y() / side * 600;
+    return QPoint(rx, ry);
 }
 
 void Snake::setTarget(){

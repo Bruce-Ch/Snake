@@ -54,6 +54,7 @@ private:
 
     QPoint rc2xy(QPoint rc);
     QPoint xy2rc(QPoint xy);
+    QPoint xy2rxry(QPoint xy);
 
     void setTarget();
 
