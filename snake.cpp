@@ -364,7 +364,7 @@ void Snake::setTarget(){
     int r = std::rand() % 1600;
     QVector<QVector<int>> plate = getPlate();
     for(int i = r; i < r + 1600; i++){
-        int row = r / 40 + 1;
+        int row = (r / 40) % 40 + 1;
         int col = r % 40 + 1;
         if(plate[row][col] == 0){
             target = QPoint(row, col);
