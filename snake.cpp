@@ -75,8 +75,6 @@ void Snake::setStateMachine(){
 }
 
 void Snake::yetToStartSetState(QState *yetToStart){
-    yetToStart->assignProperty(ui->label, "text", "In state yetToStart");
-
     yetToStart->assignProperty(ui->actionPause, "enabled", false);
     yetToStart->assignProperty(ui->actionContinue, "enabled", false);
     yetToStart->assignProperty(ui->actionSave, "enabled", false);
@@ -130,8 +128,6 @@ void Snake::yetToStartLeave(){
 }
 
 void Snake::playingSetState(QState *playing){
-    playing->assignProperty(ui->label, "text", "In state playing");
-
     playing->assignProperty(ui->actionStart, "enabled", false);
     playing->assignProperty(ui->actionLoad, "enabled", false);
     playing->assignProperty(ui->actionContinue, "enabled", false);
@@ -162,8 +158,6 @@ void Snake::playingLeave(){
 }
 
 void Snake::interruptSetState(QState *interrupt){
-    interrupt->assignProperty(ui->label, "text", "In state interrupt");
-
     interrupt->assignProperty(ui->actionStart, "enabled", false);
     interrupt->assignProperty(ui->actionPause, "enabled", false);
     interrupt->assignProperty(ui->actionLoad, "enabled", false);
@@ -186,8 +180,6 @@ void Snake::interruptInit(){
 }
 
 void Snake::stopSetState(QState *stop){
-    stop->assignProperty(ui->label, "text", "In state stop");
-
     stop->assignProperty(ui->actionStart, "enabled", false);
     stop->assignProperty(ui->actionPause, "enabled", false);
     stop->assignProperty(ui->actionContinue, "enabled", false);
