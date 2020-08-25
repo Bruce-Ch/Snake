@@ -112,6 +112,7 @@ void Snake::yetToStartInit(){
     digesting = 0;
     time = 0;
     direction = Right;
+    lastDirection = Right;
 
     stateIdx = YetToStart;
 
@@ -225,6 +226,8 @@ void Snake::getNextFrame(){
         nextPoint = QPoint(head.x(), head.y() + 1);
         break;
     }
+    lastDirection = direction;
+
     if(plate[nextPoint.x()][nextPoint.y()] == 1 || plate[nextPoint.x()][nextPoint.y()] == 3){
         emit gameover();
         return;
@@ -334,16 +337,36 @@ void Snake::keyPressEvent(QKeyEvent *event){
     }
     switch (event->key()) {
     case Qt::Key_Up:
-        direction = direction == Down ? Down : Up;
+    case Qt::Key_W:
+        if(lastDirection != Down){
+            direction = Up;
+        } else {
+            event->ignore();
+        }
         break;
     case Qt::Key_Down:
-        direction = direction == Up ? Up : Down ;
+    case Qt::Key_S:
+        if(lastDirection != Up){
+            direction = Down;
+        } else {
+            event->ignore();
+        }
         break;
     case Qt::Key_Left:
-        direction = direction == Right ? Right : Left;
+    case Qt::Key_A:
+        if(lastDirection != Right){
+            direction = Left;
+        } else {
+            event->ignore();
+        }
         break;
     case Qt::Key_Right:
-        direction = direction == Left ? Left : Right;
+    case Qt::Key_D:
+        if(lastDirection != Left){
+            direction = Right;
+        } else {
+            event->ignore();
+        }
         break;
     default:
         event->ignore();
@@ -418,6 +441,7 @@ void Snake::write(QJsonObject &json){
     }
     json["body"] = bodyJsonArray;
     json["direction"] = int(direction);
+    json["lastDirection"] = int(lastDirection);
     QJsonArray targetJsonArray;
     targetJsonArray.append(target.x());
     targetJsonArray.append(target.y());
@@ -441,6 +465,9 @@ void Snake::read(const QJsonObject &json){
     }
     if(json.contains("direction") && json["direction"].isDouble()){
         direction = Direction(json["direction"].toInt());
+    }
+    if(json.contains("lastDirection") && json["lastDirection"].isDouble()){
+        lastDirection = Direction(json["lastDirection"].toInt());
     }
     if(json.contains("target") && json["target"].isArray()){
         QJsonArray targetJsonArray = json["target"].toArray();

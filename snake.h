@@ -90,7 +90,7 @@ private:
     QList<QPoint> body; // 头位于back
     enum Direction{
         Up, Down, Left, Right
-    } direction = Right;
+    } direction = Right, lastDirection = Right;
 
     QPoint target;
     int digesting = 0;
