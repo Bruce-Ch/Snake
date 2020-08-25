@@ -92,12 +92,13 @@ private:
         Up, Down, Left, Right
     } direction = Right;
 
-    //int direction = 4; // 1上2下3左4右
     QPoint target;
     int digesting = 0;
 
     int time = 0;
-    int stateIdx = 1;
+    enum StateType{
+        YetToStart, Playing, Interrupt, Stop
+    } stateIdx = YetToStart;
 
     QPoint hover;
 

@@ -113,7 +113,7 @@ void Snake::yetToStartInit(){
     time = 0;
     direction = Right;
 
-    stateIdx = 1;
+    stateIdx = YetToStart;
 
     setMouseTracking(true);
     ui->centralwidget->setMouseTracking(true);
@@ -146,7 +146,7 @@ void Snake::playingSetState(QState *playing){
 }
 
 void Snake::playingInit(){
-    stateIdx = 2;
+    stateIdx = Playing;
     if(target.x() == -1 && target.y() == -1){
         setTarget();
     }
@@ -176,7 +176,7 @@ void Snake::interruptSetState(QState *interrupt){
 }
 
 void Snake::interruptInit(){
-    stateIdx = 3;
+    stateIdx = Interrupt;
 }
 
 void Snake::stopSetState(QState *stop){
@@ -198,7 +198,7 @@ void Snake::stopSetState(QState *stop){
 }
 
 void Snake::stopInit(){
-    stateIdx = 4;
+    stateIdx = Stop;
     QMessageBox message;
     message.setText("You lose! Your score is " + QString::number(time) + ".");
     message.setWindowTitle("You lose!");
@@ -273,7 +273,7 @@ void Snake::paintEvent(QPaintEvent *){
     painter.scale(side / 600, side / 600);
     QVector<QVector<int>> plate = getPlate();
 
-    if(stateIdx == 1){
+    if(stateIdx == YetToStart){
         painter.setPen(QColor("green"));
     } else {
         painter.setPen(QColor("white"));
@@ -309,7 +309,7 @@ void Snake::paintEvent(QPaintEvent *){
 }
 
 void Snake::mouseMoveEvent(QMouseEvent *event){
-    if(stateIdx != 1){
+    if(stateIdx != YetToStart){
         return;
     }
     int x = event->x(), y = event->y();
@@ -318,7 +318,7 @@ void Snake::mouseMoveEvent(QMouseEvent *event){
 }
 
 void Snake::mouseReleaseEvent(QMouseEvent *){
-    if(stateIdx != 1){
+    if(stateIdx != YetToStart){
         return;
     }
     if(hover.x() >= 1 && hover.x() <= 40 && hover.y() >= 1 && hover.y() <= 40){
@@ -328,7 +328,7 @@ void Snake::mouseReleaseEvent(QMouseEvent *){
 }
 
 void Snake::keyPressEvent(QKeyEvent *event){
-    if(stateIdx != 2){
+    if(stateIdx != Playing){
         event->ignore();
         return;
     }
@@ -375,8 +375,8 @@ void Snake::setTarget(){
     int r = std::rand() % 1600;
     QVector<QVector<int>> plate = getPlate();
     for(int i = r; i < r + 1600; i++){
-        int row = (r / 40) % 40 + 1;
-        int col = r % 40 + 1;
+        int row = (i / 40) % 40 + 1;
+        int col = i % 40 + 1;
         if(plate[row][col] == 0){
             target = QPoint(row, col);
             update();
