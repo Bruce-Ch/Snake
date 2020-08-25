@@ -16,6 +16,7 @@
 #include <QJsonObject>
 #include <QString>
 #include <QFileDialog>
+#include <QMessageBox>
 
 #include <cassert>
 #include <cstdlib>

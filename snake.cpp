@@ -207,6 +207,10 @@ void Snake::stopSetState(QState *stop){
 
 void Snake::stopInit(){
     stateIdx = 4;
+    QMessageBox message;
+    message.setText("You lose! Your score is " + QString::number(time) + ".");
+    message.setWindowTitle("You lose!");
+    message.exec();
 }
 
 void Snake::getNextFrame(){
