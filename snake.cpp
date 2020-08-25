@@ -273,28 +273,29 @@ void Snake::paintEvent(QPaintEvent *){
     painter.scale(side / 600, side / 600);
     QVector<QVector<int>> plate = getPlate();
 
+    if(stateIdx == 1){
+        painter.setPen(QColor("green"));
+    } else {
+        painter.setPen(QColor("white"));
+    }
+
     for(int i = 0; i < 42; i ++){
         for(int j = 0; j < 42; j++){
             switch (plate[i][j]) {
             case 0:
                 painter.setBrush(QColor("white"));
-                painter.setPen(QColor("green"));
                 break;
             case 1:
                 painter.setBrush(QColor("black"));
-                painter.setPen(QColor("green"));
                 break;
             case 2:
                 painter.setBrush(QColor("red"));
-                painter.setPen(QColor("green"));
                 break;
             case 3:
                 painter.setBrush(QColor("blue"));
-                painter.setPen(QColor("green"));
                 break;
             case 4:
                 painter.setBrush(QColor("purple"));
-                painter.setPen(QColor("green"));
                 break;
             default:
                 assert(0 && plate[i][j]);
