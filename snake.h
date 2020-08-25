@@ -14,6 +14,8 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QString>
+#include <QFileDialog>
 
 #include <cassert>
 #include <cstdlib>

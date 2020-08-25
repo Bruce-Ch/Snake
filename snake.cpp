@@ -443,7 +443,9 @@ void Snake::read(const QJsonObject &json){
 }
 
 void Snake::saveGame(){
-    QFile saveFile(saveFormat == Json ? QStringLiteral("save.json") : QStringLiteral("save.dat"));
+    QString filename = QFileDialog::getSaveFileName(this, "Save Files");
+    QFile saveFile(filename);
+    //QFile saveFile(saveFormat == Json ? QStringLiteral("save.json") : QStringLiteral("save.dat"));
     if (!saveFile.open(QIODevice::WriteOnly)) {
         qWarning("Couldn't open save file.");
         return;
@@ -456,7 +458,9 @@ void Snake::saveGame(){
 }
 
 void Snake::loadGame(){
-    QFile loadFile(saveFormat == Json ? QStringLiteral("save.json") : QStringLiteral("save.dat"));
+    QString filename = QFileDialog::getOpenFileName(this, "Load Files");
+    QFile loadFile(filename);
+    //QFile loadFile(saveFormat == Json ? QStringLiteral("save.json") : QStringLiteral("save.dat"));
     if (!loadFile.open(QIODevice::ReadOnly)) {
         qWarning("Couldn't open save file.");
         return;
