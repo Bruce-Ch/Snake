@@ -42,7 +42,8 @@ void Snake::setStateMachine(){
     stopSetState(stop);
 
     yetToStart->addTransition(ui->actionStart, &QAction::triggered, playing);
-    yetToStart->addTransition(ui->actionLoad, &QAction::triggered, interrupt);
+    yetToStart->addTransition(this, &Snake::loadGameSuceed, interrupt);
+    //yetToStart->addTransition(ui->actionLoad, &QAction::triggered, interrupt);
     playing->addTransition(ui->actionPause, &QAction::triggered, interrupt);
     playing->addTransition(this, &Snake::gameover, stop);
     interrupt->addTransition(ui->actionContinue, &QAction::triggered, playing);
@@ -446,8 +447,7 @@ void Snake::saveGame(){
     QString filename = QFileDialog::getSaveFileName(this, "Save Files");
     QFile saveFile(filename);
     //QFile saveFile(saveFormat == Json ? QStringLiteral("save.json") : QStringLiteral("save.dat"));
-    if (!saveFile.open(QIODevice::WriteOnly)) {
-        qWarning("Couldn't open save file.");
+    if (!saveFile.exists() || !saveFile.open(QIODevice::WriteOnly)) {
         return;
     }
 
@@ -461,8 +461,7 @@ void Snake::loadGame(){
     QString filename = QFileDialog::getOpenFileName(this, "Load Files");
     QFile loadFile(filename);
     //QFile loadFile(saveFormat == Json ? QStringLiteral("save.json") : QStringLiteral("save.dat"));
-    if (!loadFile.open(QIODevice::ReadOnly)) {
-        qWarning("Couldn't open save file.");
+    if (!loadFile.exists() || !loadFile.open(QIODevice::ReadOnly)) {
         return;
     }
 
@@ -471,5 +470,6 @@ void Snake::loadGame(){
     //QJsonDocument loadDoc(saveFormat == Json ? QJsonDocument::fromJson(saveData) : QJsonDocument(QCborValue::fromCbor(saveData).toMap().toJsonObject()));
 
     read(loadDoc.object());
+    emit loadGameSuceed();
     update();
 }

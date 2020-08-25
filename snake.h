@@ -77,6 +77,7 @@ private slots:
 
 signals:
     void gameover();
+    void loadGameSuceed();
 
 private:
     Ui::Snake *ui;
