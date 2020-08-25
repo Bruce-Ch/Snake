@@ -444,7 +444,7 @@ void Snake::read(const QJsonObject &json){
 }
 
 void Snake::saveGame(){
-    QString filename = QFileDialog::getSaveFileName(this, "Save Files", QApplication::instance()->applicationDirPath());
+    QString filename = QFileDialog::getSaveFileName(this, "Save Files", QApplication::instance()->applicationDirPath() + "../../../");
     QFile saveFile(filename);
     //QFile saveFile(saveFormat == Json ? QStringLiteral("save.json") : QStringLiteral("save.dat"));
     if (!saveFile.open(QIODevice::WriteOnly)) {
@@ -458,7 +458,7 @@ void Snake::saveGame(){
 }
 
 void Snake::loadGame(){
-    QString filename = QFileDialog::getOpenFileName(this, "Load Files", QApplication::instance()->applicationDirPath());
+    QString filename = QFileDialog::getOpenFileName(this, "Load Files", QApplication::instance()->applicationDirPath() + "../../../");
     QFile loadFile(filename);
     //QFile loadFile(saveFormat == Json ? QStringLiteral("save.json") : QStringLiteral("save.dat"));
     if (!loadFile.exists() || !loadFile.open(QIODevice::ReadOnly)) {
