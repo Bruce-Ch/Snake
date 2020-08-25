@@ -6,12 +6,13 @@ Snake::Snake(QWidget *parent)
     , ui(new Ui::Snake), playground(42, QVector<bool>(42, false))
 {
     ui->setupUi(this);
-    QTimer * timer = new QTimer(this);
-    connect(timer, &QTimer::timeout, [=](){ time++; ui->timeLCDNumber->display(time);});
-    connect(ui->pauseTimeButton, &QPushButton::clicked, timer, &QTimer::stop);
-    connect(ui->continueTimeButton, SIGNAL(clicked()), timer, SLOT(start()));
-    timer->setInterval(1000);
-    timer->start();
+
+    timer = new QTimer(this);
+    connect(timer, &QTimer::timeout, this, &Snake::getNextFrame);
+    timer->setInterval(200);
+
+    std::srand(std::time(nullptr));
+
     setStateMachine();
 }
 
@@ -41,6 +42,7 @@ void Snake::setStateMachine(){
     yetToStart->addTransition(ui->actionStart, &QAction::triggered, playing);
     yetToStart->addTransition(ui->actionLoad, &QAction::triggered, interrupt);
     playing->addTransition(ui->actionPause, &QAction::triggered, interrupt);
+    playing->addTransition(this, &Snake::gameover, stop);
     interrupt->addTransition(ui->actionContinue, &QAction::triggered, playing);
     interrupt->addTransition(ui->actionRestart, &QAction::triggered, yetToStart);
     interrupt->addTransition(ui->actionSave, &QAction::triggered, interrupt);
@@ -61,6 +63,7 @@ void Snake::setStateMachine(){
     connect(interrupt, &QState::entered, this, &Snake::interruptInit);
     connect(stop, &QState::entered, this, &Snake::stopInit);
     connect(yetToStart, &QState::exited, this, &Snake::yetToStartLeave);
+    connect(playing, &QState::exited, this, &Snake::playingLeave);
 
     stateMachine->start();
 }
@@ -97,11 +100,14 @@ void Snake::yetToStartInit(){
     }
 
     body.clear();
-    body.push_back(QPoint(20, 21));
     body.push_back(QPoint(20, 20));
+    body.push_back(QPoint(20, 21));
 
     target = QPoint(-1, -1);
     hover = QPoint(-1, -1);
+    digesting = 0;
+    time = 0;
+    direction = 4;
 
     stateIdx = 1;
 
@@ -139,6 +145,14 @@ void Snake::playingSetState(QState *playing){
 
 void Snake::playingInit(){
     stateIdx = 2;
+    if(target.x() == -1 && target.y() == -1){
+        setTarget();
+    }
+    timer->start();
+}
+
+void Snake::playingLeave(){
+    timer->stop();
 }
 
 void Snake::interruptSetState(QState *interrupt){
@@ -189,9 +203,46 @@ void Snake::stopInit(){
     stateIdx = 4;
 }
 
-void Snake::paintEvent(QPaintEvent *){
-    QPainter painter(this);
-    painter.setRenderHint(QPainter::Antialiasing);
+void Snake::getNextFrame(){
+    time++;
+
+    QVector<QVector<int>> plate = getPlate();
+    QPoint nextPoint;
+    QPoint head = body.back();
+    switch (direction) {
+    case 1:
+        nextPoint = QPoint(head.x() - 1, head.y());
+        break;
+    case 2:
+        nextPoint = QPoint(head.x() + 1, head.y());
+        break;
+    case 3:
+        nextPoint = QPoint(head.x(), head.y() - 1);
+        break;
+    case 4:
+        nextPoint = QPoint(head.x(), head.y() + 1);
+    }
+    if(plate[nextPoint.x()][nextPoint.y()] == 1 || plate[nextPoint.x()][nextPoint.y()] == 3){
+        emit gameover();
+        return;
+    }
+
+    if(digesting > 0){
+        digesting--;
+    } else {
+        body.pop_front();
+    }
+
+    body.push_back(nextPoint);
+    if(nextPoint.x() == target.x() && nextPoint.y() == target.y()){
+        digesting += 3;
+        setTarget();
+    }
+
+    update();
+}
+
+QVector<QVector<int>> Snake::getPlate(){
     QVector<QVector<int>> plate(42, QVector<int>(42, 0));
     for(int i = 0; i < 42; i ++){
         for(int j = 0; j < 42; j ++){
@@ -207,6 +258,13 @@ void Snake::paintEvent(QPaintEvent *){
     if(hover.x() >= 1 && hover.x() <= 40 && hover.y() >= 1 && hover.y() <= 40){
         plate[hover.x()][hover.y()] = 4;
     }
+    return plate;
+}
+
+void Snake::paintEvent(QPaintEvent *){
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+    QVector<QVector<int>> plate = getPlate();
 
     for(int i = 0; i < 42; i ++){
         for(int j = 0; j < 42; j++){
@@ -239,6 +297,7 @@ void Snake::paintEvent(QPaintEvent *){
         }
     }
     painter.end();
+    ui->timeLCDNumber->display(time);
 }
 
 void Snake::mouseMoveEvent(QMouseEvent *event){
@@ -260,6 +319,29 @@ void Snake::mouseReleaseEvent(QMouseEvent *){
     update();
 }
 
+void Snake::keyPressEvent(QKeyEvent *event){
+    if(stateIdx != 2){
+        event->ignore();
+        return;
+    }
+    switch (event->key()) {
+    case Qt::Key_Up:
+        direction = direction == 2 ? 2 : 1;
+        break;
+    case Qt::Key_Down:
+        direction = direction == 1 ? 1 : 2;
+        break;
+    case Qt::Key_Left:
+        direction = direction == 4 ? 4 : 3;
+        break;
+    case Qt::Key_Right:
+        direction = direction == 3 ? 3 : 4;
+        break;
+    default:
+        event->ignore();
+    }
+}
+
 QPoint Snake::rc2xy(QPoint rc){
     int y = 50 + rc.x() * 10;
     int x = 50 + rc.y() * 10;
@@ -270,4 +352,18 @@ QPoint Snake::xy2rc(QPoint xy){
     int row = (xy.y() - 50) / 10;
     int col = (xy.x() - 50) / 10;
     return QPoint(row, col);
+}
+
+void Snake::setTarget(){
+    int r = std::rand() % 1600;
+    QVector<QVector<int>> plate = getPlate();
+    for(int i = r; i < r + 1600; i++){
+        int row = r / 40 + 1;
+        int col = r % 40 + 1;
+        if(plate[row][col] == 0){
+            target = QPoint(row, col);
+            update();
+            return;
+        }
+    }
 }
