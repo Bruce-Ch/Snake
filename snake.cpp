@@ -21,6 +21,8 @@ Snake::~Snake()
     delete ui;
 }
 
+const Snake::SaveFormat Snake::saveFormat = Snake::Json;
+
 void Snake::setStateMachine(){
     QStateMachine* stateMachine = new QStateMachine(this);
     QState* game = new QState();
@@ -64,6 +66,9 @@ void Snake::setStateMachine(){
     connect(stop, &QState::entered, this, &Snake::stopInit);
     connect(yetToStart, &QState::exited, this, &Snake::yetToStartLeave);
     connect(playing, &QState::exited, this, &Snake::playingLeave);
+
+    connect(ui->actionLoad, &QAction::triggered, this, &Snake::loadGame);
+    connect(ui->actionSave, &QAction::triggered, this, &Snake::saveGame);
 
     stateMachine->start();
 }
@@ -366,4 +371,101 @@ void Snake::setTarget(){
             return;
         }
     }
+}
+
+QString Snake::pg2str(const QVector<QVector<bool> > &playground){
+    QString ret;
+    for(const auto& row: playground){
+        for(bool item: row){
+            ret += item ? '1' : '0';
+        }
+    }
+    return ret;
+}
+
+QVector<QVector<bool> > Snake::str2pg(const QString &str){
+    QVector<QVector<bool> > ret(42, QVector<bool>(42));
+    for(int i = 0; i < 1764; i++){
+        int row = i / 42;
+        int col = i % 42;
+        ret[row][col] = str[i] == '1' ? true : false;
+    }
+    return ret;
+}
+
+
+void Snake::write(QJsonObject &json){
+    QString strPlayground = pg2str(playground);
+    json["playground"] = strPlayground;
+    QJsonArray bodyJsonArray;
+    for(QPoint item: body){
+        QJsonArray itemJsonArray;
+        itemJsonArray.append(item.x());
+        itemJsonArray.append(item.y());
+        bodyJsonArray.append(itemJsonArray);
+    }
+    json["body"] = bodyJsonArray;
+    json["direction"] = direction;
+    QJsonArray targetJsonArray;
+    targetJsonArray.append(target.x());
+    targetJsonArray.append(target.y());
+    json["target"] = targetJsonArray;
+    json["digesting"] = digesting;
+    json["time"] = time;
+}
+
+void Snake::read(const QJsonObject &json){
+    if(json.contains("playground") && json["playground"].isString()){
+        QString strPlayground = json["playground"].toString();
+        playground = str2pg(strPlayground);
+    }
+    if(json.contains("body") && json["body"].isArray()){
+        QJsonArray bodyJsonArray = json["body"].toArray();
+        body.clear();
+        for(int i = 0; i < bodyJsonArray.size(); i++){
+            QJsonArray itemJsonArray = bodyJsonArray[i].toArray();
+            body.push_back(QPoint(itemJsonArray[0].toInt(), itemJsonArray[1].toInt()));
+        }
+    }
+    if(json.contains("direction") && json["direction"].isDouble()){
+        direction = json["direction"].toInt();
+    }
+    if(json.contains("target") && json["target"].isArray()){
+        QJsonArray targetJsonArray = json["target"].toArray();
+        target = QPoint(targetJsonArray[0].toInt(), targetJsonArray[1].toInt());
+    }
+    if(json.contains("digesting") && json["digesting"].isDouble()){
+        digesting = json["digesting"].toInt();
+    }
+    if(json.contains("time") && json["time"].isDouble()){
+        time = json["time"].toInt();
+    }
+}
+
+void Snake::saveGame(){
+    QFile saveFile(saveFormat == Json ? QStringLiteral("save.json") : QStringLiteral("save.dat"));
+    if (!saveFile.open(QIODevice::WriteOnly)) {
+        qWarning("Couldn't open save file.");
+        return;
+    }
+
+    QJsonObject gameObject;
+    write(gameObject);
+    saveFile.write(QJsonDocument(gameObject).toJson());
+    //saveFile.write(saveFormat == Json ? QJsonDocument(gameObject).toJson() : QCborValue::fromJsonValue(gameObject).toCbor());
+}
+
+void Snake::loadGame(){
+    QFile loadFile(saveFormat == Json ? QStringLiteral("save.json") : QStringLiteral("save.dat"));
+    if (!loadFile.open(QIODevice::ReadOnly)) {
+        qWarning("Couldn't open save file.");
+        return;
+    }
+
+    QByteArray saveData = loadFile.readAll();
+    QJsonDocument loadDoc(QJsonDocument::fromJson(saveData));
+    //QJsonDocument loadDoc(saveFormat == Json ? QJsonDocument::fromJson(saveData) : QJsonDocument(QCborValue::fromCbor(saveData).toMap().toJsonObject()));
+
+    read(loadDoc.object());
+    update();
 }

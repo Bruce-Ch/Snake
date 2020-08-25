@@ -11,6 +11,9 @@
 #include <QPainter>
 #include <QMouseEvent>
 #include <QKeyEvent>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
 
 #include <cassert>
 #include <cstdlib>
@@ -27,6 +30,10 @@ class Snake : public QMainWindow
 public:
     Snake(QWidget *parent = nullptr);
     ~Snake();
+
+    enum SaveFormat{
+        Json, Binary
+    };
 
 private:
     void setStateMachine();
@@ -47,6 +54,12 @@ private:
 
     void setTarget();
 
+    void write(QJsonObject& json);
+    void read(const QJsonObject& json);
+
+    QString pg2str(const QVector<QVector<bool>>& playground);
+    QVector<QVector<bool>> str2pg(const QString& str);
+
 private slots:
     void yetToStartInit();
     void playingInit();
@@ -57,11 +70,16 @@ private slots:
 
     void getNextFrame();
 
+    void saveGame();
+    void loadGame();
+
 signals:
     void gameover();
 
 private:
     Ui::Snake *ui;
+
+    const static SaveFormat saveFormat;
 
     QVector<QVector<bool>> playground;
     QList<QPoint> body; // 头位于back
