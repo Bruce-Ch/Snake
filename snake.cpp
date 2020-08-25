@@ -111,7 +111,7 @@ void Snake::yetToStartInit(){
     hover = QPoint(-1, -1);
     digesting = 0;
     time = 0;
-    direction = 4;
+    direction = Right;
 
     stateIdx = 1;
 
@@ -212,17 +212,18 @@ void Snake::getNextFrame(){
     QPoint nextPoint;
     QPoint head = body.back();
     switch (direction) {
-    case 1:
+    case Up:
         nextPoint = QPoint(head.x() - 1, head.y());
         break;
-    case 2:
+    case Down:
         nextPoint = QPoint(head.x() + 1, head.y());
         break;
-    case 3:
+    case Left:
         nextPoint = QPoint(head.x(), head.y() - 1);
         break;
-    case 4:
+    case Right:
         nextPoint = QPoint(head.x(), head.y() + 1);
+        break;
     }
     if(plate[nextPoint.x()][nextPoint.y()] == 1 || plate[nextPoint.x()][nextPoint.y()] == 3){
         emit gameover();
@@ -332,16 +333,16 @@ void Snake::keyPressEvent(QKeyEvent *event){
     }
     switch (event->key()) {
     case Qt::Key_Up:
-        direction = direction == 2 ? 2 : 1;
+        direction = direction == Down ? Down : Up;
         break;
     case Qt::Key_Down:
-        direction = direction == 1 ? 1 : 2;
+        direction = direction == Up ? Up : Down ;
         break;
     case Qt::Key_Left:
-        direction = direction == 4 ? 4 : 3;
+        direction = direction == Right ? Right : Left;
         break;
     case Qt::Key_Right:
-        direction = direction == 3 ? 3 : 4;
+        direction = direction == Left ? Left : Right;
         break;
     default:
         event->ignore();
@@ -415,7 +416,7 @@ void Snake::write(QJsonObject &json){
         bodyJsonArray.append(itemJsonArray);
     }
     json["body"] = bodyJsonArray;
-    json["direction"] = direction;
+    json["direction"] = int(direction);
     QJsonArray targetJsonArray;
     targetJsonArray.append(target.x());
     targetJsonArray.append(target.y());
@@ -438,7 +439,7 @@ void Snake::read(const QJsonObject &json){
         }
     }
     if(json.contains("direction") && json["direction"].isDouble()){
-        direction = json["direction"].toInt();
+        direction = Direction(json["direction"].toInt());
     }
     if(json.contains("target") && json["target"].isArray()){
         QJsonArray targetJsonArray = json["target"].toArray();

@@ -88,7 +88,11 @@ private:
 
     QVector<QVector<bool>> playground;
     QList<QPoint> body; // 头位于back
-    int direction = 4; // 1上2下3左4右
+    enum Direction{
+        Up, Down, Left, Right
+    } direction = Right;
+
+    //int direction = 4; // 1上2下3左4右
     QPoint target;
     int digesting = 0;
 
