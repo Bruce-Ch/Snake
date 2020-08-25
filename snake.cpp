@@ -447,7 +447,7 @@ void Snake::saveGame(){
     QString filename = QFileDialog::getSaveFileName(this, "Save Files");
     QFile saveFile(filename);
     //QFile saveFile(saveFormat == Json ? QStringLiteral("save.json") : QStringLiteral("save.dat"));
-    if (!saveFile.exists() || !saveFile.open(QIODevice::WriteOnly)) {
+    if (!saveFile.open(QIODevice::WriteOnly)) {
         return;
     }
 
