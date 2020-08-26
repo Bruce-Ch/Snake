@@ -8,4 +8,7 @@
         <file>save.png</file>
         <file>open-folder.png</file>
     </qresource>
+    <qresource prefix="/images">
+        <file>background.jpg</file>
+    </qresource>
 </RCC>

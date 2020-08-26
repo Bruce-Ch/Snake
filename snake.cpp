@@ -270,6 +270,12 @@ QVector<QVector<int>> Snake::getPlate() const{
 void Snake::paintEvent(QPaintEvent *){
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
+
+    QRectF target(0, 0, width(), height());
+    QRectF source(0.0, 0.0, 800, 481);
+    QPixmap pixmap(":/images/background.jpg");
+    painter.drawPixmap(target, pixmap, source);
+
     int left, top, right, bottom;
     ui->centralwidget->getContentsMargins(&left, &top, &right, &bottom);
     double side = qMin<double>((ui->centralwidget->width() - left - right) * 0.75, ui->centralwidget->height() - top - bottom);
@@ -374,13 +380,13 @@ void Snake::keyPressEvent(QKeyEvent *event){
 }
 
 QPoint Snake::rc2xy(QPoint rc) const{
-    int y = 50 + rc.x() * 13;
+    int y = 80 + rc.x() * 13;
     int x = 50 + rc.y() * 13;
     return QPoint(x, y);
 }
 
 QPoint Snake::xy2rc(QPoint xy) const {
-    int row = (xy.y() - 50) / 13;
+    int row = (xy.y() - 80) / 13;
     int col = (xy.x() - 50) / 13;
     return QPoint(row, col);
 }
