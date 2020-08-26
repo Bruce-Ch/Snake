@@ -38,10 +38,6 @@ public:
     Snake(QWidget *parent = nullptr);
     ~Snake();
 
-    enum SaveFormat{
-        Json, Binary
-    };
-
 private:
     void setStateMachine();
     void yetToStartSetState(QState* yetToStart);
@@ -79,7 +75,6 @@ signals:
 private:
     Ui::Snake *ui;
 
-    const static SaveFormat saveFormat = Json;
     const static int left = 50, top = 80, size = 13;
     const static int range = 40;
     const static int standardPixel = 600;
