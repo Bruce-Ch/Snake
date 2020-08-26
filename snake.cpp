@@ -3,7 +3,7 @@
 
 Snake::Snake(QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::Snake), playground(42, QVector<bool>(42, false))
+    , ui(new Ui::Snake), playground(range)
 {
     ui->setupUi(this);
 
@@ -13,6 +13,10 @@ Snake::Snake(QWidget *parent)
 
     std::srand(std::time(nullptr));
 
+    PointConverter::setTop(top);
+    PointConverter::setLeft(left);
+    PointConverter::setSize(size);
+
     setStateMachine();
 }
 
@@ -20,8 +24,6 @@ Snake::~Snake()
 {
     delete ui;
 }
-
-const Snake::SaveFormat Snake::saveFormat = Snake::Json;
 
 void Snake::setStateMachine(){
     QStateMachine* stateMachine = new QStateMachine(this);
@@ -93,26 +95,10 @@ void Snake::yetToStartSetState(QState *yetToStart){
 }
 
 void Snake::yetToStartInit(){
-    for(int i = 0; i < 42; i ++){
-        for(int j = 0; j < 42; j ++){
-            if(i == 0 || i == 41 || j == 0 || j == 41){
-                playground[i][j] = true;
-            } else {
-                playground[i][j] = false;
-            }
-        }
-    }
+    playground.clear();
 
-    body.clear();
-    body.push_back(QPoint(20, 20));
-    body.push_back(QPoint(20, 21));
-
-    target = QPoint(-1, -1);
-    hover = QPoint(-1, -1);
-    digesting = 0;
+    hover = RCPoint(-1, -1);
     time = 0;
-    direction = Right;
-    lastDirection = Right;
 
     stateIdx = YetToStart;
 
@@ -125,7 +111,7 @@ void Snake::yetToStartInit(){
 void Snake::yetToStartLeave(){
     setMouseTracking(false);
     ui->centralwidget->setMouseTracking(false);
-    hover = QPoint(-1, -1);
+    hover = RCPoint(-1, -1);
 }
 
 void Snake::playingSetState(QState *playing){
@@ -148,8 +134,8 @@ void Snake::playingSetState(QState *playing){
 
 void Snake::playingInit(){
     stateIdx = Playing;
-    if(target.x() == -1 && target.y() == -1){
-        setTarget();
+    if(!playground.targetSet()){
+        playground.setTarget();
     }
     timer->start();
 }
@@ -208,63 +194,10 @@ void Snake::stopInit(){
 
 void Snake::getNextFrame(){
     time++;
-
-    QVector<QVector<int>> plate = getPlate();
-    QPoint nextPoint;
-    QPoint head = body.back();
-    switch (direction) {
-    case Up:
-        nextPoint = QPoint(head.x() - 1, head.y());
-        break;
-    case Down:
-        nextPoint = QPoint(head.x() + 1, head.y());
-        break;
-    case Left:
-        nextPoint = QPoint(head.x(), head.y() - 1);
-        break;
-    case Right:
-        nextPoint = QPoint(head.x(), head.y() + 1);
-        break;
-    }
-    lastDirection = direction;
-
-    if(plate[nextPoint.x()][nextPoint.y()] == 1 || plate[nextPoint.x()][nextPoint.y()] == 3){
+    if(!playground.getNextFrame()){
         emit gameover();
-        return;
     }
-
-    if(digesting > 0){
-        digesting--;
-    } else {
-        body.pop_front();
-    }
-
-    body.push_back(nextPoint);
-    if(nextPoint.x() == target.x() && nextPoint.y() == target.y()){
-        digesting += 3;
-        setTarget();
-    }
-
     update();
-}
-
-QVector<QVector<int>> Snake::getPlate() const{
-    QVector<QVector<int>> plate(42, QVector<int>(42, 0));
-    for(int i = 0; i < 42; i ++){
-        for(int j = 0; j < 42; j ++){
-            plate[i][j] = playground[i][j];
-        }
-    }
-    if(target.x() >= 1 && target.x() <= 40 && target.y() >= 1 && target.y() <= 40){
-        plate[target.x()][target.y()] = 2;
-    }
-    for(auto point: body){
-        plate[point.x()][point.y()] = 3;
-    }
-    if(hover.x() >= 1 && hover.x() <= 40 && hover.y() >= 1 && hover.y() <= 40){
-        plate[hover.x()][hover.y()] = 4;
-    }
-    return plate;
 }
 
 void Snake::paintEvent(QPaintEvent *){
@@ -279,8 +212,8 @@ void Snake::paintEvent(QPaintEvent *){
     int left, top, right, bottom;
     ui->centralwidget->getContentsMargins(&left, &top, &right, &bottom);
     double side = qMin<double>((ui->centralwidget->width() - left - right) * 0.75, ui->centralwidget->height() - top - bottom);
-    painter.scale(side / 600, side / 600);
-    QVector<QVector<int>> plate = getPlate();
+    painter.scale(side / standardPixel, side / standardPixel);
+    QVector<QVector<Playground::PointState>> plate = playground.toPlate();
 
     if(stateIdx == YetToStart){
         painter.setPen(QColor("darkkhaki"));
@@ -288,31 +221,33 @@ void Snake::paintEvent(QPaintEvent *){
         painter.setPen(QColor("lightyellow"));
     }
 
-    for(int i = 0; i < 42; i ++){
-        for(int j = 0; j < 42; j++){
+    for(int i = 0; i < range + 2; i ++){
+        for(int j = 0; j < range + 2; j++){
             switch (plate[i][j]) {
-            case 0:
+            case Playground::Empty:
                 painter.setBrush(QColor("bisque"));
                 break;
-            case 1:
+            case Playground::Barrier:
                 painter.setBrush(QColor("black"));
                 break;
-            case 2:
+            case Playground::Target:
                 painter.setBrush(QColor("red"));
                 break;
-            case 3:
+            case Playground::Body:
                 painter.setBrush(QColor("blue"));
                 break;
-            case 4:
-                painter.setBrush(QColor("purple"));
-                break;
-            default:
-                assert(0 && plate[i][j]);
             }
-            QPoint xy = rc2xy(QPoint(i, j));
-            painter.drawRect(xy.x(), xy.y(), 13, 13);
+            QPoint xy = PointConverter::rc2xy(RCPoint(i, j));
+            painter.drawRect(xy.x(), xy.y(), size, size);
         }
     }
+
+    if(stateIdx == YetToStart && playground.pointInRange(hover)){
+        painter.setBrush(QColor("purple"));
+        QPoint xy = PointConverter::rc2xy(hover);
+        painter.drawRect(xy.x(), xy.y(), size, size);
+    }
+
     painter.end();
     ui->timeLCDNumber->display(time);
 }
@@ -322,7 +257,7 @@ void Snake::mouseMoveEvent(QMouseEvent *event){
         return;
     }
     int x = event->x(), y = event->y();
-    hover = xy2rc(xy2rxry(QPoint(x, y)));
+    hover = PointConverter::xy2rc(xy2rxry(QPoint(x, y)));
     update();
 }
 
@@ -330,9 +265,7 @@ void Snake::mouseReleaseEvent(QMouseEvent *){
     if(stateIdx != YetToStart){
         return;
     }
-    if(hover.x() >= 1 && hover.x() <= 40 && hover.y() >= 1 && hover.y() <= 40){
-        playground[hover.x()][hover.y()] = !playground[hover.x()][hover.y()];
-    }
+    playground.changeBarrier(hover);
     update();
 }
 
@@ -344,143 +277,44 @@ void Snake::keyPressEvent(QKeyEvent *event){
     switch (event->key()) {
     case Qt::Key_Up:
     case Qt::Key_W:
-        if(lastDirection != Down){
-            direction = Up;
-        } else {
-            event->ignore();
-        }
+        playground.changeDirection(Playground::Up);
         break;
     case Qt::Key_Down:
     case Qt::Key_S:
-        if(lastDirection != Up){
-            direction = Down;
-        } else {
-            event->ignore();
-        }
+        playground.changeDirection(Playground::Down);
         break;
     case Qt::Key_Left:
     case Qt::Key_A:
-        if(lastDirection != Right){
-            direction = Left;
-        } else {
-            event->ignore();
-        }
+        playground.changeDirection(Playground::Left);
         break;
     case Qt::Key_Right:
     case Qt::Key_D:
-        if(lastDirection != Left){
-            direction = Right;
-        } else {
-            event->ignore();
-        }
+        playground.changeDirection(Playground::Right);
         break;
     default:
         event->ignore();
     }
 }
 
-QPoint Snake::rc2xy(QPoint rc) const{
-    int y = 80 + rc.x() * 13;
-    int x = 50 + rc.y() * 13;
-    return QPoint(x, y);
-}
-
-QPoint Snake::xy2rc(QPoint xy) const {
-    int row = (xy.y() - 80) / 13;
-    int col = (xy.x() - 50) / 13;
-    return QPoint(row, col);
-}
-
 QPoint Snake::xy2rxry(QPoint xy) const {
     int left, top, right, bottom;
     ui->centralwidget->getContentsMargins(&left, &top, &right, &bottom);
     double side = qMin<double>((ui->centralwidget->width() - left - right) * 0.75, ui->centralwidget->height() - top - bottom);
-    int rx = xy.x() / side * 600;
-    int ry = xy.y() / side * 600;
+    int rx = xy.x() / side * standardPixel;
+    int ry = xy.y() / side * standardPixel;
     return QPoint(rx, ry);
 }
 
-void Snake::setTarget(){
-    int r = std::rand() % 1600;
-    QVector<QVector<int>> plate = getPlate();
-    for(int i = r; i < r + 1600; i++){
-        int row = (i / 40) % 40 + 1;
-        int col = i % 40 + 1;
-        if(plate[row][col] == 0){
-            target = QPoint(row, col);
-            update();
-            return;
-        }
-    }
-}
-
-QString Snake::pg2str(const QVector<QVector<bool> > &playground){
-    QString ret;
-    for(const auto& row: playground){
-        for(bool item: row){
-            ret += item ? '1' : '0';
-        }
-    }
-    return ret;
-}
-
-QVector<QVector<bool> > Snake::str2pg(const QString &str){
-    QVector<QVector<bool> > ret(42, QVector<bool>(42));
-    for(int i = 0; i < 1764; i++){
-        int row = i / 42;
-        int col = i % 42;
-        ret[row][col] = str[i] == '1' ? true : false;
-    }
-    return ret;
-}
-
-
 void Snake::write(QJsonObject &json) const {
-    QString strPlayground = pg2str(playground);
-    json["playground"] = strPlayground;
-    QJsonArray bodyJsonArray;
-    for(QPoint item: body){
-        QJsonArray itemJsonArray;
-        itemJsonArray.append(item.x());
-        itemJsonArray.append(item.y());
-        bodyJsonArray.append(itemJsonArray);
-    }
-    json["body"] = bodyJsonArray;
-    json["direction"] = int(direction);
-    json["lastDirection"] = int(lastDirection);
-    QJsonArray targetJsonArray;
-    targetJsonArray.append(target.x());
-    targetJsonArray.append(target.y());
-    json["target"] = targetJsonArray;
-    json["digesting"] = digesting;
+    QJsonObject playgroundJsonObject;
+    playground.write(playgroundJsonObject);
+    json["playground"] = playgroundJsonObject;
     json["time"] = time;
 }
 
 void Snake::read(const QJsonObject &json){
-    if(json.contains("playground") && json["playground"].isString()){
-        QString strPlayground = json["playground"].toString();
-        playground = str2pg(strPlayground);
-    }
-    if(json.contains("body") && json["body"].isArray()){
-        QJsonArray bodyJsonArray = json["body"].toArray();
-        body.clear();
-        for(int i = 0; i < bodyJsonArray.size(); i++){
-            QJsonArray itemJsonArray = bodyJsonArray[i].toArray();
-            body.push_back(QPoint(itemJsonArray[0].toInt(), itemJsonArray[1].toInt()));
-        }
-    }
-    if(json.contains("direction") && json["direction"].isDouble()){
-        direction = Direction(json["direction"].toInt());
-    }
-    if(json.contains("lastDirection") && json["lastDirection"].isDouble()){
-        lastDirection = Direction(json["lastDirection"].toInt());
-    }
-    if(json.contains("target") && json["target"].isArray()){
-        QJsonArray targetJsonArray = json["target"].toArray();
-        target = QPoint(targetJsonArray[0].toInt(), targetJsonArray[1].toInt());
-    }
-    if(json.contains("digesting") && json["digesting"].isDouble()){
-        digesting = json["digesting"].toInt();
+    if(json.contains("playground") && json["playground"].isObject()){
+        playground.read(json["playground"].toObject());
     }
     if(json.contains("time") && json["time"].isDouble()){
         time = json["time"].toInt();
@@ -488,9 +322,9 @@ void Snake::read(const QJsonObject &json){
 }
 
 void Snake::saveGame() const {
-    QString filename = QFileDialog::getSaveFileName(nullptr, "Save Files", QApplication::instance()->applicationDirPath() + "../../../", "JSON data (*.json)");
+    QString filename = QFileDialog::getSaveFileName(nullptr, "Save Files",
+                              QApplication::instance()->applicationDirPath() + "../../../", "JSON data (*.json)");
     QFile saveFile(filename);
-    //QFile saveFile(saveFormat == Json ? QStringLiteral("save.json") : QStringLiteral("save.dat"));
     if (!saveFile.open(QIODevice::WriteOnly)) {
         return;
     }
@@ -498,22 +332,21 @@ void Snake::saveGame() const {
     QJsonObject gameObject;
     write(gameObject);
     saveFile.write(QJsonDocument(gameObject).toJson());
-    //saveFile.write(saveFormat == Json ? QJsonDocument(gameObject).toJson() : QCborValue::fromJsonValue(gameObject).toCbor());
 }
 
 void Snake::loadGame(){
-    QString filename = QFileDialog::getOpenFileName(this, "Load Files", QApplication::instance()->applicationDirPath() + "../../../", "JSON data (*.json)");
+    QString filename = QFileDialog::getOpenFileName(this, "Load Files",
+                              QApplication::instance()->applicationDirPath() + "../../../", "JSON data (*.json)");
     QFile loadFile(filename);
-    //QFile loadFile(saveFormat == Json ? QStringLiteral("save.json") : QStringLiteral("save.dat"));
     if (!loadFile.exists() || !loadFile.open(QIODevice::ReadOnly)) {
         return;
     }
 
     QByteArray saveData = loadFile.readAll();
     QJsonDocument loadDoc(QJsonDocument::fromJson(saveData));
-    //QJsonDocument loadDoc(saveFormat == Json ? QJsonDocument::fromJson(saveData) : QJsonDocument(QCborValue::fromCbor(saveData).toMap().toJsonObject()));
 
     read(loadDoc.object());
     emit loadGameSuceed();
     update();
 }
+

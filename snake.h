@@ -22,6 +22,10 @@
 #include <cstdlib>
 #include <ctime>
 
+#include "playground.h"
+#include "rcpoint.h"
+#include "pointconverter.h"
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class Snake; }
 QT_END_NAMESPACE
@@ -45,24 +49,15 @@ private:
     void interruptSetState(QState* interrupt);
     void stopSetState(QState* stop);
 
-    QVector<QVector<int>> getPlate() const; // 0空1墙2食3身4hover
-
     void paintEvent(QPaintEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;
     void mouseReleaseEvent(QMouseEvent* event) override;
     void keyPressEvent(QKeyEvent* event) override;
 
-    QPoint rc2xy(QPoint rc) const;
-    QPoint xy2rc(QPoint xy) const;
     QPoint xy2rxry(QPoint xy) const;
-
-    void setTarget();
 
     void write(QJsonObject& json) const;
     void read(const QJsonObject& json);
-
-    static QString pg2str(const QVector<QVector<bool>>& playground);
-    static QVector<QVector<bool>> str2pg(const QString& str);
 
 private slots:
     void yetToStartInit();
@@ -84,23 +79,20 @@ signals:
 private:
     Ui::Snake *ui;
 
-    const static SaveFormat saveFormat;
+    const static SaveFormat saveFormat = Json;
+    const static int left = 50, top = 80, size = 13;
+    const static int range = 40;
+    const static int standardPixel = 600;
 
-    QVector<QVector<bool>> playground;
-    QList<QPoint> body; // 头位于back
-    enum Direction{
-        Up, Down, Left, Right
-    } direction = Right, lastDirection = Right;
+    Playground playground;
 
-    QPoint target;
-    int digesting = 0;
-
-    int time = 0;
     enum StateType{
         YetToStart, Playing, Interrupt, Stop
     } stateIdx = YetToStart;
 
-    QPoint hover;
+    RCPoint hover;
+
+    int time = 0;
 
     QTimer* timer;
 };

@@ -17,9 +17,15 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     main.cpp \
+    playground.cpp \
+    pointconverter.cpp \
+    rcpoint.cpp \
     snake.cpp
 
 HEADERS += \
+    playground.h \
+    pointconverter.h \
+    rcpoint.h \
     snake.h
 
 FORMS += \
