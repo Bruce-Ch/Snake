@@ -271,7 +271,7 @@ void Snake::mouseReleaseEvent(QMouseEvent *){
 
 void Snake::keyPressEvent(QKeyEvent *event){
     if(stateIdx != Playing){
-        event->ignore();
+        QMainWindow::keyPressEvent(event);
         return;
     }
     switch (event->key()) {
@@ -292,7 +292,7 @@ void Snake::keyPressEvent(QKeyEvent *event){
         playground.changeDirection(Playground::Right);
         break;
     default:
-        event->ignore();
+        QMainWindow::keyPressEvent(event);
     }
 }
 
