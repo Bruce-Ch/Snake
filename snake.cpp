@@ -248,7 +248,7 @@ void Snake::getNextFrame(){
     update();
 }
 
-QVector<QVector<int>> Snake::getPlate(){
+QVector<QVector<int>> Snake::getPlate() const{
     QVector<QVector<int>> plate(42, QVector<int>(42, 0));
     for(int i = 0; i < 42; i ++){
         for(int j = 0; j < 42; j ++){
@@ -373,19 +373,19 @@ void Snake::keyPressEvent(QKeyEvent *event){
     }
 }
 
-QPoint Snake::rc2xy(QPoint rc){
+QPoint Snake::rc2xy(QPoint rc) const{
     int y = 50 + rc.x() * 13;
     int x = 50 + rc.y() * 13;
     return QPoint(x, y);
 }
 
-QPoint Snake::xy2rc(QPoint xy){
+QPoint Snake::xy2rc(QPoint xy) const {
     int row = (xy.y() - 50) / 13;
     int col = (xy.x() - 50) / 13;
     return QPoint(row, col);
 }
 
-QPoint Snake::xy2rxry(QPoint xy){
+QPoint Snake::xy2rxry(QPoint xy) const {
     int left, top, right, bottom;
     ui->centralwidget->getContentsMargins(&left, &top, &right, &bottom);
     double side = qMin<double>((ui->centralwidget->width() - left - right) * 0.75, ui->centralwidget->height() - top - bottom);
@@ -429,7 +429,7 @@ QVector<QVector<bool> > Snake::str2pg(const QString &str){
 }
 
 
-void Snake::write(QJsonObject &json){
+void Snake::write(QJsonObject &json) const {
     QString strPlayground = pg2str(playground);
     json["playground"] = strPlayground;
     QJsonArray bodyJsonArray;
@@ -481,8 +481,8 @@ void Snake::read(const QJsonObject &json){
     }
 }
 
-void Snake::saveGame(){
-    QString filename = QFileDialog::getSaveFileName(this, "Save Files", QApplication::instance()->applicationDirPath() + "../../../", "JSON data (*.json)");
+void Snake::saveGame() const {
+    QString filename = QFileDialog::getSaveFileName(nullptr, "Save Files", QApplication::instance()->applicationDirPath() + "../../../", "JSON data (*.json)");
     QFile saveFile(filename);
     //QFile saveFile(saveFormat == Json ? QStringLiteral("save.json") : QStringLiteral("save.dat"));
     if (!saveFile.open(QIODevice::WriteOnly)) {
