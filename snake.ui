@@ -176,6 +176,10 @@
    <addaction name="actionLoad"/>
   </widget>
   <action name="actionStart">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/icons/start.png</normaloff>:/icons/start.png</iconset>
+   </property>
    <property name="text">
     <string>Start</string>
    </property>
@@ -187,6 +191,10 @@
    </property>
   </action>
   <action name="actionPause">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/icons/pause.png</normaloff>:/icons/pause.png</iconset>
+   </property>
    <property name="text">
     <string>Pause</string>
    </property>
@@ -198,6 +206,10 @@
    </property>
   </action>
   <action name="actionContinue">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/icons/continue.png</normaloff>:/icons/continue.png</iconset>
+   </property>
    <property name="text">
     <string>Continue</string>
    </property>
@@ -209,6 +221,10 @@
    </property>
   </action>
   <action name="actionRestart">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/icons/restart.png</normaloff>:/icons/restart.png</iconset>
+   </property>
    <property name="text">
     <string>Restart</string>
    </property>
@@ -220,6 +236,10 @@
    </property>
   </action>
   <action name="actionQuit">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/icons/quit.png</normaloff>:/icons/quit.png</iconset>
+   </property>
    <property name="text">
     <string>Quit</string>
    </property>
@@ -231,6 +251,10 @@
    </property>
   </action>
   <action name="actionSave">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/icons/save.png</normaloff>:/icons/save.png</iconset>
+   </property>
    <property name="text">
     <string>Save</string>
    </property>
@@ -242,6 +266,10 @@
    </property>
   </action>
   <action name="actionLoad">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/icons/open-folder.png</normaloff>:/icons/open-folder.png</iconset>
+   </property>
    <property name="text">
     <string>Load</string>
    </property>
@@ -253,6 +281,8 @@
    </property>
   </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections/>
 </ui>
