@@ -150,10 +150,16 @@
     <addaction name="actionPause"/>
     <addaction name="actionContinue"/>
     <addaction name="actionRestart"/>
-    <addaction name="actionQuit"/>
-    <addaction name="actionSave"/>
-    <addaction name="actionLoad"/>
    </widget>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionLoad"/>
+    <addaction name="actionSave"/>
+    <addaction name="actionQuit"/>
+   </widget>
+   <addaction name="menuFile"/>
    <addaction name="menuSnake"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
