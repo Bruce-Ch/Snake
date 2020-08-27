@@ -75,7 +75,7 @@ signals:
 private:
     Ui::Snake *ui;
 
-    const static int left = 50, top = 80, size = 13;
+    const static int left = 40, top = 80, size = 13;
     const static int range = 40;
     const static int standardPixel = 600;
 
