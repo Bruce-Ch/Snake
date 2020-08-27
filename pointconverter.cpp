@@ -17,8 +17,8 @@ void PointConverter::setSize(int value){
 }
 
 QPoint PointConverter::rc2xy(const RCPoint &rc){
-    int y = top + rc.row() * 13;
-    int x = left + rc.col() * 13;
+    int y = top + rc.row() * size;
+    int x = left + rc.col() * size;
     return QPoint(x, y);
 }
 
