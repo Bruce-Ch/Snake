@@ -29,6 +29,7 @@ void Playground::clear(){
     lastDirection = Right;
 
     targetSetFlag = false;
+    directionSetFlag = false;
 }
 
 void Playground::changeBarrier(const RCPoint &point){
@@ -100,21 +101,25 @@ void Playground::changeDirection(Direction direction_){
     case Up:
         if(lastDirection != Down){
             direction = Up;
+            directionSetFlag = true;
         }
         break;
     case Down:
         if(lastDirection != Up){
             direction = Down;
+            directionSetFlag = true;
         }
         break;
     case Left:
         if(lastDirection != Right){
             direction = Left;
+            directionSetFlag = true;
         }
         break;
     case Right:
         if(lastDirection != Left){
             direction = Right;
+            directionSetFlag = true;
         }
         break;
     }
@@ -170,6 +175,9 @@ void Playground::read(const QJsonObject &json){
     if(json.contains("targetSetFlag") && json["targetSetFlag"].isBool()){
         targetSetFlag = json["targetSetFlag"].toBool();
     }
+    if(json.contains("directionSetFlag") && json["directionSetFlag"].isBool()){
+        directionSetFlag = json["directionSetFlag"].toBool();
+    }
 }
 
 void Playground::write(QJsonObject &json) const {
@@ -193,6 +201,7 @@ void Playground::write(QJsonObject &json) const {
 
     json["digesting"] = digesting;
     json["targetSetFlag"] = targetSetFlag;
+    json["directionSetFlag"] = directionSetFlag;
 }
 
 QVector<QVector<Playground::PointState>> Playground::toPlate() const {
@@ -213,4 +222,8 @@ QVector<QVector<Playground::PointState>> Playground::toPlate() const {
 
 bool Playground::targetSet() const {
     return targetSetFlag;
+}
+
+bool Playground::directionSet() const {
+    return directionSetFlag;
 }

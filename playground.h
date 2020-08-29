@@ -32,6 +32,7 @@ private:
     Direction direction = Right, lastDirection = Right;
 
     bool targetSetFlag = false;
+    bool directionSetFlag = false;
 
 public:
     explicit Playground(int range_);
@@ -51,6 +52,7 @@ public:
     QVector<QVector<PointState>> toPlate() const;
 
     bool targetSet() const;
+    bool directionSet() const;
 
 private:
     QString barrierToString() const;

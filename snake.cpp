@@ -136,8 +136,11 @@ void Snake::playingInit(){
     stateIdx = Playing;
     if(!playground.targetSet()){
         playground.setTarget();
+        update();
     }
-    timer->start();
+    if(playground.directionSet()){
+        timer->start();
+    }
 }
 
 void Snake::playingLeave(){
@@ -274,6 +277,7 @@ void Snake::keyPressEvent(QKeyEvent *event){
         QMainWindow::keyPressEvent(event);
         return;
     }
+    bool g = playground.directionSet();
     switch (event->key()) {
     case Qt::Key_Up:
     case Qt::Key_W:
@@ -293,6 +297,9 @@ void Snake::keyPressEvent(QKeyEvent *event){
         break;
     default:
         QMainWindow::keyPressEvent(event);
+    }
+    if(!g){
+        playingInit();
     }
 }
 
